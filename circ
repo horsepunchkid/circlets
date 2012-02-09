@@ -2,5 +2,80 @@
 
 use strict;
 use SVG;
+use Getopt::Long;
 use Data::Dumper;
+
+my $help;
+my $m = 10;
+my $n = 3;
+my $R = 500;
+my $W = 1000;
+my $H = 1000;
+my $pi = 3.14159265358;
+
+my $result = GetOptions(
+    'help|?'    => \$help,
+    'groups=i'  => \$m,
+    'circles=i' => \$n,
+    'radius=i'  => \$R,
+);
+
+if($help) {
+    print <<USAGE;
+Usage: circ
+            --help          Print help and exit
+            --groups=10     Make this many groups of circles
+            --circles=3     Make this many circles in each group
+            --radius=500    Distribute groups around a cirlce of this radius
+USAGE
+    exit;
+}
+
+my $svg = SVG->new(width => $W, height => $H);
+$svg->title()->cdata("Circo with $m groups of $n circles");
+
+my $cx = $W/2;
+my $cy = $H/2;
+
+my $main = $svg->group(
+    style => {
+        opacity => 1,
+        fill => 'none',
+        stroke => '#000000',
+        'stroke-width' => '0.25pt',
+        'stroke-opacity' => 1,
+    },
+);
+
+$main->circle(cx => $cx, cy => $cy, r => $R);
+$main->circle(cx => $cx, cy => $cy, r => 2);
+
+my $u = 2 * $pi / ($m * (2 * $n + 1));
+for my $i (0..$m-1) {
+    my $gx = $cx + $R * sin($i/$m * 2 * $pi);
+    my $gy = $cy + $R * cos($i/$m * 2 * $pi);
+    #$main->circle(cx => $gx, cy => $gy, r => 2);
+    for my $j (0..$n-1) {
+        #$main->circle(
+        #    cx => $cx + $R * sin($i/$m*2*$pi + ($j+1)/($m*(2*$n+1))*2*$pi),
+        #    cy => $cy + $R * cos($i/$m*2*$pi + ($j+1)/($m*(2*$n+1))*2*$pi),
+        #    r => 2,
+        #);
+        #$main->circle(
+        #    cx => $cx + $R * sin($i/$m*2*$pi - ($j+1)/($m*(2*$n+1))*2*$pi),
+        #    cy => $cy + $R * cos($i/$m*2*$pi - ($j+1)/($m*(2*$n+1))*2*$pi),
+        #    r => 2,
+        #);
+
+        my $f = 2*($j + 1) * $u;
+        my $gr = $R * sin($f/2)/cos($f/2);
+        my $h = $R * (1/cos($f/2) - 1);
+        my $hx = $gx+$h*sin($i/$m * 2 * $pi);
+        my $hy = $gy+$h*cos($i/$m * 2 * $pi);
+        #$main->circle(cx => $hx, cy => $hy, r => 2);
+        $main->circle(cx => $hx, cy => $hy, r => $gr);
+    }
+}
+
+print $svg->xmlify;
 
