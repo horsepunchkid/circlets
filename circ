@@ -29,7 +29,7 @@ my $result = GetOptions(
 
 if($help || !$result) {
     my $usage = <<USAGE;
-Usage: circ [-h|options]
+Usage: $0 [-h|options]
 Render to standard out an SVG image of a set of nested circles spinning
 around the circumference of a central circle.
 
@@ -55,12 +55,12 @@ USAGE
 }
 
 if($weight !~ /\d+(\.\d+)?(pt|px)/) {
-    print STDERR "Weight was not understood; see circ --help for details.\n";
+    print STDERR "Weight was not understood; see $0 --help for details.\n";
     exit 2;
 }
 
 my $svg = SVG->new(width => $W, height => $H);
-$svg->title()->cdata("Circo with $m groups of $n circles");
+$svg->title()->cdata("$0 with $m groups of $n circles");
 
 my $cx = $W/2;
 my $cy = $H/2;
