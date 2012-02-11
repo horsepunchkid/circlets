@@ -2,7 +2,7 @@
 
 use strict;
 use SVG;
-use Getopt::Long qw(:config no_ignore_case);
+use Getopt::Long qw(:config no_ignore_case no_auto_abbrev);
 
 my $help;
 my $m = 10;
@@ -11,22 +11,24 @@ my $parity = 0;
 my $R = 300;
 my $a = 0.0;
 my $weight = '1.25pt';
+my $main_circle = 1;
 my $debug;
 my $W = 1000;
 my $H = 1000;
 my $pi = 3.14159265358;
 
 my $result = GetOptions(
-    'help|?'    => \$help,
-    'groups=i'  => \$m,
-    'circles=i' => \$n,
-    'parity=i'  => \$parity,
-    'radius=i'  => \$R,
-    'width|w=i' => \$W,
-    'height=i'  => \$H,
-    'angle=f'   => \$a,
-    'weight|W=s'=> \$weight,
-    'debug'     => \$debug,
+    'help|?'        => \$help,
+    'groups|g=i'    => \$m,
+    'circles|c=i'   => \$n,
+    'parity|p=i'    => \$parity,
+    'radius|r=i'    => \$R,
+    'width|w=i'     => \$W,
+    'height|h=i'    => \$H,
+    'angle|a=f'     => \$a,
+    'weight|W=s'    => \$weight,
+    'main-circle!'  => \$main_circle,
+    'debug|d'       => \$debug,
 );
 
 if($help || !$result) {
@@ -36,7 +38,7 @@ Render to standard out an SVG image of a set of nested circles spinning
 around the circumference of a central circle.
 
 Options:
-    -h --help          Print help and exit
+    -? --help          Print help and exit
     -g --groups=10     Make this many groups of circles
     -c --circles=3     Make this many circles in each group
     -p --parity=0      Even or odd parity for circles
@@ -45,6 +47,7 @@ Options:
     -h --height=1000   Height of canvas in pixels
     -a --angle=0.0     Angle in degress to rotate inner arcs
     -W --weight=1.25pt Stroke weight (2.5pt, 5px, etc.)
+    -m --main-circle   Whether to render the main circle; negate with --no-...
     -d --debug         Render additional figures for debugging
 USAGE
     if($help) {
@@ -82,7 +85,7 @@ my $main   = $svg->group(style => $base_style);
 my $outers = $svg->group(style => $base_style);
 my $inners = $svg->group(style => $base_style, transform => "rotate($a $cx $cy)");
 
-$main->circle(cx => $cx, cy => $cy, r => $R);
+$main->circle(cx => $cx, cy => $cy, r => $R) if $main_circle;
 $main->circle(cx => $cx, cy => $cy, r => 2) if $debug;
 
 my $total = $m * (2 * $n + 1 - $parity); # Total points around circumference
