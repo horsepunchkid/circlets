@@ -7,6 +7,7 @@ use Getopt::Long qw(:config no_ignore_case);
 my $help;
 my $m = 10;
 my $n = 3;
+my $parity = 0;
 my $R = 300;
 my $a = 0.0;
 my $weight = '1.25pt';
@@ -19,6 +20,7 @@ my $result = GetOptions(
     'help|?'    => \$help,
     'groups=i'  => \$m,
     'circles=i' => \$n,
+    'parity=i'  => \$parity,
     'radius=i'  => \$R,
     'width|w=i' => \$W,
     'height=i'  => \$H,
@@ -37,6 +39,7 @@ Options:
     -h --help          Print help and exit
     -g --groups=10     Make this many groups of circles
     -c --circles=3     Make this many circles in each group
+    -p --parity=0      Even or odd parity for circles
     -r --radius=300    Distribute groups around a cirlce of this pixel radius
     -w --width=1000    Width of canvas in pixels
     -h --height=1000   Height of canvas in pixels
@@ -53,6 +56,8 @@ USAGE
         exit 1;
     }
 }
+
+$parity = $parity % 2;
 
 if($weight !~ /\d+(\.\d+)?(pt|px)/) {
     print STDERR "Weight was not understood; see $0 --help for details.\n";
@@ -80,7 +85,7 @@ my $inners = $svg->group(style => $base_style, transform => "rotate($a $cx $cy)"
 $main->circle(cx => $cx, cy => $cy, r => $R);
 $main->circle(cx => $cx, cy => $cy, r => 2) if $debug;
 
-my $total = $m * (2 * $n + 1); # Total points around circumference
+my $total = $m * (2 * $n + 1 - $parity); # Total points around circumference
 for my $i (0..$m-1) {
     # Group-center of circlets
     my $gx = $cx + $R * sin($i/$m * 2 * $pi);
@@ -90,7 +95,7 @@ for my $i (0..$m-1) {
 
     for my $j (1..$n) {
         # Angle that the circle subtends along the circumference
-        my $f = 2 * $j * 2 * $pi / $total;
+        my $f = 2 * $j * 2 * $pi / $total - $parity*2*$pi/$total;
 
         # Radius of unique circle intersecting orthogonally at that angle
         my $gr = $R * sin($f/2)/cos($f/2);
@@ -101,8 +106,8 @@ for my $i (0..$m-1) {
         my $hy = $gy + $h * cos($i/$m * 2 * $pi);
 
         # Angle of points along circumference for starts and ends of arcs
-        my $alpha = ($i/$m + $j/$total) * 2 * $pi;
-        my $beta  = ($i/$m - $j/$total) * 2 * $pi;
+        my $alpha = ($i/$m + $j/$total) * 2 * $pi - $parity*$pi/$total;
+        my $beta  = ($i/$m - $j/$total) * 2 * $pi + $parity*$pi/$total;
 
         if($debug) {
             $main->circle(cx => $hx, cy => $hy, r => 2);
